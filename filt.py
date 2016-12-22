@@ -76,11 +76,14 @@ def main():
       keys = sorted(dict1) # 排序
       for key in keys:
         f2.write(str(key) + ':' + str(dict1[key]) + '\n') 
+      f2.close();
 
     with open(file3, 'w') as f3:
       keys = sorted(dict1)
       for key in keys:
         f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
+      f3.close();
+    f.close();
 
 if __name__ == '__main__':
   main()
