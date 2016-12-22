@@ -4,20 +4,14 @@
 # 序号：中心点
 #############################################################
 
-import math, sys, getopt
+import math, sys, os
 
 def main():       
-  opts,args = getopt.getopt(sys.argv[1:], "hi:o:")
-  file = ""#input('Please input inputFile name:') # 要处理的文件
-  file2 = ""#input('Please input outputFile1 name:') # 输出中心点  
-  for op, value in opts:
-    if op == "-i":
-      file = value
-    elif op == "-o":
-      file2 = value
-    elif op == "-h":
-      usage()
-      sys.exit()
+  file = sys.argv[1];#input('Please input inputFile name:') # 要处理的文件
+  dir,filename = os.path.split(file);""#input('Please input outputFile1 name:') # 输出中心点  
+  subdir = dir + '/subgroup';
+  if( not os.path.exists(subdir)):
+    os.mkdir(subdir);
   with open(file) as f:
     subfile = "";
     groupid = 0;
@@ -32,7 +26,7 @@ def main():
         ctime = int(group[-2]);
         if(num != prenum and ctime - pretime > 100000):
           prenum = num;
-          subfile = file2 + str(groupid) + '.txt';
+          subfile = subdir + '/groups' + str(groupid) + '.txt';
           groupid += 1;
           with open(subfile,'a') as sf:
             sf.write(line);
