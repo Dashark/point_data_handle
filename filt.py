@@ -36,6 +36,7 @@ def filt(center, num):
 
 def main():       
   global dict1
+  timespan = {} # 2帧之间的时间差
   opts,args = getopt.getopt(sys.argv[1:], "hi:o:c:")
   file = ""#input('Please input inputFile name:') # 要处理的文件
   file2 = ""#input('Please input outputFile1 name:') # 输出中心点  
@@ -51,14 +52,19 @@ def main():
       usage()
       sys.exit()
   with open(file) as f:
+    pretime = 0;
     while True:
       line = f.readline() # 按行读取数据
 
       if line:
-        num = int(line.split()[-1]) # 序号，int类型
+        group = line.split();
+        num = int(group[-1]) # 序号，int类型
+        ctime = int(group[-2]);
         center = getCenter(line) # 中心点，tuple类型
         if num not in dict1.keys():
           dict1[num] = [center]
+          timespan[num] = [ctime-pretime];
+          pretime = ctime;
         else:
           center = filt(center, num) #过滤
           if center != []:
@@ -66,15 +72,15 @@ def main():
       else:
         break
 
-    with open(file2, 'a') as f2:
+    with open(file2, 'w') as f2:
       keys = sorted(dict1) # 排序
       for key in keys:
         f2.write(str(key) + ':' + str(dict1[key]) + '\n') 
 
-    with open(file3, 'a') as f3:
+    with open(file3, 'w') as f3:
       keys = sorted(dict1)
       for key in keys:
-        f3.write(str(key) + ':' + str(len(dict1[key])) + '\n')
+        f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
 
 if __name__ == '__main__':
   main()
