@@ -69,7 +69,9 @@ def main():
       with open(outfile+'-count'+ext, 'w') as f3:
         keys = sorted(dict1)
         for key in keys:
-          f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
+          len1 = len(dict1[key]);
+          if len1 > 1:
+            f3.write(str(key) + ':' + str(len1) + ':' + str(timespan[key]) + '\n')
         f3.close();
       f.close();
       dict1.clear();
