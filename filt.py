@@ -4,7 +4,7 @@
 # 序号：中心点
 #############################################################
 
-import math, sys, getopt
+import math, sys, glob, os
 
 dict1 = {} # {序号：中心点}
 
@@ -37,53 +37,42 @@ def filt(center, num):
 def main():       
   global dict1
   timespan = {} # 2帧之间的时间差
-  opts,args = getopt.getopt(sys.argv[1:], "hi:o:c:")
-  file = ""#input('Please input inputFile name:') # 要处理的文件
-  file2 = ""#input('Please input outputFile1 name:') # 输出中心点  
-  file3 = ""#input('Please input outputFile2 name:') # 输出数量
-  for op, value in opts:
-    if op == "-i":
-      file = value
-    elif op == "-o":
-      file2 = value
-    elif op == "-c":
-      file3 = value
-    elif op == "-h":
-      usage()
-      sys.exit()
-  with open(file) as f:
-    pretime = 0;
-    while True:
-      line = f.readline() # 按行读取数据
+  pretime = 0;
+  for file in glob.glob(sys.argv[1]+'/*.txt'):
+    with open(file) as f:
+      outfile,ext = os.path.splitext(file);
+      while True:
+        line = f.readline() # 按行读取数据
 
-      if line:
-        group = line.split();
-        num = int(group[-1]) # 序号，int类型
-        ctime = int(group[-2]);
-        center = getCenter(line) # 中心点，tuple类型
-        if num not in dict1.keys():
-          dict1[num] = [center]
-          timespan[num] = [ctime-pretime];
-          pretime = ctime;
+        if line:
+          group = line.split();
+          num = int(group[-1]) # 序号，int类型
+          ctime = int(group[-2]);
+          center = getCenter(line) # 中心点，tuple类型
+          if num not in dict1.keys():
+            dict1[num] = [center]
+            timespan[num] = [ctime-pretime];
+            pretime = ctime;
+          else:
+            center = filt(center, num) #过滤
+            if center != []:
+              dict1[num].append(center)
         else:
-          center = filt(center, num) #过滤
-          if center != []:
-            dict1[num].append(center)
-      else:
-        break
+          break
 
-    with open(file2, 'w') as f2:
-      keys = sorted(dict1) # 排序
-      for key in keys:
-        f2.write(str(key) + ':' + str(dict1[key]) + '\n') 
-      f2.close();
+      with open(outfile+'-filt'+ext, 'w') as f2:
+        keys = sorted(dict1) # 排序
+        for key in keys:
+          f2.write(str(key) + ':' + str(dict1[key]) + '\n') 
+        f2.close();
 
-    with open(file3, 'w') as f3:
-      keys = sorted(dict1)
-      for key in keys:
-        f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
-      f3.close();
-    f.close();
+      with open(outfile+'-count'+ext, 'w') as f3:
+        keys = sorted(dict1)
+        for key in keys:
+          f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
+        f3.close();
+      f.close();
+      dict1.clear();
 
 if __name__ == '__main__':
   main()
