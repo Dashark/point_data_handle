@@ -5,7 +5,6 @@
 #############################################################
 
 import math, sys, glob, os
-from sympy import Point2D, Polygon
 
 dict1 = {} # {序号：中心点}
 
