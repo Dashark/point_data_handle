@@ -5,6 +5,7 @@
 #############################################################
 
 import math, sys, glob, os
+from sympy import Point2D, Polygon
 
 dict1 = {} # {序号：中心点}
 dict2 = {} # 存放没有处理过的点xmin,ymin,xmax,ymax
@@ -20,6 +21,23 @@ def getCenter(line):
   ycenter = ymin + (ymax - ymin) / 2
   return (xcenter, ycenter)
 
+# 重叠面积
+def overlap(rect1,rect2):
+  xmin,ymin,xmax,ymax = rect1;
+  p11 = Point2D(xmin, ymin);
+  p12 = Point2D(xmax, ymin);
+  p13 = Point2D(xmax, ymax);
+  p14 = Point2D(xmin, ymax);
+  poly1 = Polygon(p11,p12,p13,p14);
+  
+  xmin,ymin,xmax,ymax = rect2;
+  p21 = Point2D(xmin, ymin);
+  p22 = Point2D(xmax, ymin);
+  p23 = Point2D(xmax, ymax);
+  p24 = Point2D(xmin, ymax);
+  poly2 = Polygon(p21,p22,p23,p24);
+  
+  inters = poly1.intersection(poly2);
 # 按面积过滤
 def filt_area(line):
   global dict1, dict2, timespan
