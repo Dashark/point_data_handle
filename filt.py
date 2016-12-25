@@ -7,6 +7,8 @@
 import math, sys, glob, os
 
 dict1 = {} # {序号：中心点}
+dict2 = {} # 存放没有处理过的点xmin,ymin,xmax,ymax
+timespan = {} # 2帧之间的时间差
 
 # 求中心点，返回中心点坐标
 def getCenter(line):
@@ -19,46 +21,55 @@ def getCenter(line):
   ycenter = ymin + (ymax - ymin) / 2
   return (xcenter, ycenter)
 
-# 过滤相似的点，如果相似，返回None
-def filt(center, num):
-  global dict1
-  count = 0 # 统计比较了多少次
-  # 两点之间的距离
-  for tup in dict1[num]:
-    leng = math.sqrt((center[0]-tup[0])**2 + (center[1]-tup[1])**2)
-    if leng < 50:
-      break
-    else:
-      count += 1
-  if count == len(dict1[num]):
-    return center
-  return []
+# 按面积过滤
+def filt_area(line):
+  global dict1, dict2, timespan
+  
+  pretime = 0;
+  group = line.split()
+  num = int(group[-1]) # 序号，int类型
+  ctime = int(group[-2])
+  center = getCenter(line)
+  if num not in dict1.keys():
+    dict2[num] = [tuple(group[0:-2])]
+    # 目前把第一个矩形作为对比
+    dict1[num] = [center]
+    timespan[num] = [ctime-pretime]
+    pretime = ctime
+  else:
+    xmin2 = float(group[0])
+    ymin2 = float(group[1])
+    xmax2 = float(group[2])
+    ymax2 = float(group[3])
+    count = 0
+    for tup in dict2[num]:
+      xmin1 = float(tup[0])
+      ymin1 = float(tup[1])
+      xmax1 = float(tup[2])
+      ymax1 = float(tup[3])
+      xmin = max(xmin1, xmin2)
+      ymin = max(ymin1, ymin2)
+      xmax = min(xmax1, xmax2)
+      ymax = min(ymax1, ymax2)
+      if xmin >= xmax: # 两个矩形没有重叠
+        count += 1
+      elif (xmax-xmin)*(ymax-ymin) <= 50: # 重叠面积过小
+        count += 1
+    if count == len(dict2[num]):
+      dict1[num].append(center)
+      dict2[num].append((xmin2, ymin2, xmax2, ymax2))
 
 def main():       
   global dict1
-  timespan = {} # 2帧之间的时间差
-  pretime = 0;
+  
   for file in glob.glob(sys.argv[1]+'/*.txt'):
     with open(file) as f:
       outfile,ext = os.path.splitext(file);
       while True:
         line = f.readline() # 按行读取数据
-
         if line:
-          group = line.split();
-          num = int(group[-1]) # 序号，int类型
-          ctime = int(group[-2]);
-          center = getCenter(line) # 中心点，tuple类型
-          if num not in dict1.keys():
-            dict1[num] = [center]
-            timespan[num] = [ctime-pretime];
-            pretime = ctime;
-          else:
-            center = filt(center, num) #过滤
-            if center != []:
-              dict1[num].append(center)
-        else:
-          break
+          filt_area(line)
+        else: break
 
       with open(outfile+'-filt'+ext, 'w') as f2:
         keys = sorted(dict1) # 排序
@@ -69,9 +80,7 @@ def main():
       with open(outfile+'-count'+ext, 'w') as f3:
         keys = sorted(dict1)
         for key in keys:
-          len1 = len(dict1[key]);
-          if len1 > 1:
-            f3.write(str(key) + ':' + str(len1) + ':' + str(timespan[key]) + '\n')
+          f3.write(str(key) + ':' + str(len(dict1[key])) + ':' + str(timespan[key]) + '\n')
         f3.close();
       f.close();
       dict1.clear();
