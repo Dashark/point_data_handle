@@ -23,21 +23,20 @@ def getCenter(line):
 
 # 重叠面积
 def overlap(rect1,rect2):
-  xmin,ymin,xmax,ymax = rect1;
-  p11 = Point2D(xmin, ymin);
-  p12 = Point2D(xmax, ymin);
-  p13 = Point2D(xmax, ymax);
-  p14 = Point2D(xmin, ymax);
-  poly1 = Polygon(p11,p12,p13,p14);
-  
-  xmin,ymin,xmax,ymax = rect2;
-  p21 = Point2D(xmin, ymin);
-  p22 = Point2D(xmax, ymin);
-  p23 = Point2D(xmax, ymax);
-  p24 = Point2D(xmin, ymax);
-  poly2 = Polygon(p21,p22,p23,p24);
-  
-  inters = poly1.intersection(poly2);
+  xmin1,ymin1,xmax1,ymax1 = rect1;
+  xmin2,ymin2,xmax2,ymax2 = rect2;
+  xmin = max(xmin1,xmin2);
+  ymin = max(ymin1, ymin2);
+  xmax = min(xmax1, xmax2);
+  ymax = min(ymax1, ymax2);
+  if(xmin>=xmax or ymin >= ymax):
+    return False;
+  else:
+    area1 = (xmax1-xmin1)*(ymax1-ymin1);
+    area2 = (xmax2-xmin2)*(ymax2-ymin2);
+    lap = (xmax-xmin)*(ymax-ymin);
+    return lap/(area1+area2-lap);
+
 # 按面积过滤
 def filt_area(line):
   global dict1, dict2, timespan
@@ -53,27 +52,16 @@ def filt_area(line):
     timespan[num] = [ctime-pretime]
     pretime = ctime
   else:
-    xmin2 = line[0]
-    ymin2 = line[1]
-    xmax2 = line[2]
-    ymax2 = line[3]
     count = 0
     for tup in dict2[num]:
-      xmin1 = tup[0]
-      ymin1 = tup[1]
-      xmax1 = tup[2]
-      ymax1 = tup[3]
-      xmin = max(xmin1, xmin2)
-      ymin = max(ymin1, ymin2)
-      xmax = min(xmax1, xmax2)
-      ymax = min(ymax1, ymax2)
-      if xmin >= xmax: # 两个矩形没有重叠
+      ret = overlap(tuple(line[0:-2]), tup);
+      if ret == False: # 两个矩形没有重叠
         count += 1
-      elif (xmax-xmin)*(ymax-ymin) <= 50: # 重叠面积过小
+      elif ret < 0.7: # 重叠面积过小,70%以下
         count += 1
     if count == len(dict2[num]):
       dict1[num].append(center)
-      dict2[num].append((xmin2, ymin2, xmax2, ymax2))
+      dict2[num].append(tuple(line[0:-2]));
 
 def main():       
   global dict1
