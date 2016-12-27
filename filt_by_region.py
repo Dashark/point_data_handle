@@ -47,7 +47,7 @@ def main():
           data = [round(x) for x in map(float, line.split())];
           reg = tag_region(data)
           if(reg != -1):
-            f2.write(str(reg)+':'+line);
+            f2.write(str(reg)+' '+line);
         else: break
       f2.close();
       f.close();
