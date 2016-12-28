@@ -49,6 +49,16 @@ class Tracking:
       lap = (xmax-xmin)*(ymax-ymin);
       return lap/(area1+area2-lap);
 
+  # 中心点距离
+  def distance(self, rect1, rect2):
+    xmin1,ymin1,xmax1,ymax1 = rect1;
+    xmin2,ymin2,xmax2,ymax2 = rect2;
+    xcenter1 = xmin1 + (xmax1 - xmin1) / 2
+    ycenter1 = ymin1 + (ymax1 - ymin1) / 2
+    xcenter2 = xmin2 + (xmax2 - xmin2) / 2
+    ycenter2 = ymin2 + (ymax2 - ymin2) / 2
+    return math.sqrt((xcenter1-xcenter2)**2+(ycenter1-ycenter2)**2)
+
   def tag_region(line):
     regions = ((60,160,580,180),(560,160,580,470),(60,450,580,470),(60,160,80,470));
     index = 0;
@@ -62,31 +72,27 @@ class Tracking:
 def main():       
   dirs = ((3,1,1,1),(2,3,3,3),(2,3,3,3),(2,3,3,3));
 
+  track = Tracking();
   for file in glob.glob(sys.argv[1]+'/*region.txt'):
     with open(file) as f:
       outfile,ext = os.path.splitext(file);
       f2 = open(outfile+'-fuse'+ext, 'w');
-      preline = f.readline();
-      pre = [round(x) for x in map(float, preline.split())];
-      track = Tracking();
-      track.fuse(pre[1:-2]);
-      pre_region = pre[0];
+      pre_region = -1;
       #region = [];
-      while True:
-        line = f.readline() # 按行读取数据
-        if line:
-          data = [round(x) for x in map(float, line.split())];
-          if(data[0]==pre_region):
-            region = track.fuse(data[1:-2]);
-          else:
-            #print(str(pre_region) + ' ' + str(region)+'\n')
-            f2.write(str(pre_region) + ' ' + str(region)+'\n');
-            track.clear();
-            track.fuse(data[1:-2]);
-            pre_region = data[0];
+      for line in f.readlines(): # 按行读取数据
+        data = [round(x) for x in map(float, line.split())];
+        if pre_region == -1:
+          pre_region = data[0]
+          region = track.fuse(data[1:-2]);
+        elif data[0] == pre_region :
+          region = track.fuse(data[1:-2])
         else:
           f2.write(str(pre_region) + ' ' + str(region)+'\n');
-          break
+          track.clear();
+          region = track.fuse(data[1:-2]);
+          pre_region = data[0];
+      f2.write(str(pre_region) + ' ' + str(region)+'\n');
+      track.clear();
       f2.close();
     f.close();
 
