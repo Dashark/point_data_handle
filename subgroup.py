@@ -24,7 +24,7 @@ def main():
         group = line.split();
         num = int(group[-1]) # 序号，int类型
         ctime = int(group[-2]);
-        if(num != prenum and ctime - pretime > 100000):
+        if num - prenum > 30:
           prenum = num;
           subfile = subdir + '/groups' + str(groupid) + '.txt';
           groupid += 1;
@@ -36,6 +36,7 @@ def main():
             sf.write(line);
             sf.close();
         pretime = ctime;
+        prenum = num
       else:
         break
 
