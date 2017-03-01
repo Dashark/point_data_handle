@@ -17,13 +17,14 @@ def main():
     groupid = 0;
     pretime = 0;
     prenum = 0;
+    subfile = subdir + '/groups' + str(groupid) + '.txt';
     while True:
       line = f.readline() # 按行读取数据
 
       if line:
         group = line.split();
-        num = int(group[-1]) # 序号，int类型
-        ctime = int(group[-2]);
+        num = int(group[-2]) # 序号，int类型
+        ctime = int(group[-3]);
         if num - prenum > 30:
           prenum = num;
           subfile = subdir + '/groups' + str(groupid) + '.txt';
